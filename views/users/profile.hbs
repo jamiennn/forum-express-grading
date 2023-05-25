@@ -1,17 +1,37 @@
 <div class="container">
-  <div class="row">
-    <div class="col-lg-4">
-      {{#if user.image }}
-      <img class="img-responsive center-block" src="{{ user.image }}"
-        style="width: 250px; margin-bottom: 25px; transition: opacity 0.5s; opacity:0;" onload="this.style.opacity=1;">
-      {{else}}
-      <img src="https://fakeimg.pl/140/" width="140px" height="140px" />
-      {{/if}}
+
+  {{!-- description --}}
+  <div class="row py-4 mb-4" style="background-color: white; border: 1px solid #D9D9D9">
+    <div class="col-lg-4 row align-items-center text-center">
+      <div>
+        {{#if user.image }}
+        <img class="img-responsive center-block" src="{{ user.image }}"
+          style="width: 250px; margin-bottom: 25px; transition: opacity 0.5s; opacity:0;"
+          onload="this.style.opacity=1;">
+        {{else}}
+        <img src="https://fakeimg.pl/140/" width="140px" height="140px" />
+        {{/if}}
+      </div>
     </div>
     <div class="col-md-8">
       <h1>{{ user.name }}</h1>
       <p>{{ user.email }}</p>
+      <div class="counts my-4">
+        <span class="fw-bold">{{comments.length}}</span>
+        <span>已評論餐廳</span><br>
 
+        <span class="fw-bold">{{user.FavoritedRestaurants.length}}</span>
+        <span>收藏的餐廳</span><br>
+
+        <span class="fw-bold">{{user.Followers.length}}</span>
+        <span>followers（粉絲）</span><br>
+
+        <span class="fw-bold">{{user.Followings.length}}</span>
+        <span>followings（追隨中）</span>
+      </div>
+
+
+      {{!-- edit button --}}
       {{#ifCond user.id loginUser.id}}
       <a href="/users/{{user.id}}/edit">
         <button class="btn btn-primary">
@@ -22,23 +42,116 @@
 
     </div>
   </div>
-  <hr>
-  <div class="container">
-    {{#ifCond comments.count 0}}
-    <h5>尚未有評論</h5>
-    {{else}}
-    <h5>{{comments.count}}已評論餐廳</h5>
-    <div class="row">
-      {{#each comments.rows}}
-      <div class="col-1 m-1">
-        <a href="/restaurants/{{ this.Restaurant.id }}">
-          <div style="background-image: url('{{ this.Restaurant.image }}');background-position: center; background-size: cover;
-                background-repeat: no-repeat; height: 50px">
+
+  <div class="row justify-content-between">
+
+    {{!-- left --}}
+    <div class="col-lg-4 p-0">
+
+
+      {{!-- followings --}}
+      {{#ifCond user.Followings.length 0}}
+      <h5 class="card card-header">尚未追隨任何人</h5>
+      {{else}}
+      <div class="card mb-4">
+        <h5 class="card-header">{{user.Followings.length}} followings（追隨中）</h5>
+        <div class="row card-body">
+          {{#each user.Followings}}
+          <div class="col-3 my-2">
+            <a href="/users/{{ this.id }}">
+              {{#if this.image}}
+              <div style="background-image: url('{{ this.image }}');background-position: center; background-size: cover;
+                            background-repeat: no-repeat; height: 40px; width: 40px; border-radius: 50%">
+              </div>
+            </a>
+            {{else}}
+            <a href="/users/{{ this.id }}" style="text-decoration: none;">
+              <div class="text-center {{ randomColor }} p-2" style="height: 40px; width: 40px; border-radius: 50%">
+                <span>{{ this.icon }}</span>
+              </div>
+            </a>
+            {{/if}}
           </div>
-        </a>
+          {{/each}}
+        </div>
       </div>
-      {{/each}}
+      {{/ifCond}}
+
+      {{!-- followers --}}
+      {{#ifCond user.Followers.length 0}}
+      <h5 class=" card card-header">尚無粉絲</h5>
+      {{else}}
+      <div class="card mb-4">
+        <h5 class="card-header">{{user.Followers.length}} followers（粉絲）</h5>
+        <div class="row card-body">
+          {{#each user.Followers}}
+          <div class="col-3 my-2">
+            <a href="/users/{{ this.id }}">
+              {{#if this.image}}
+              <div style="background-image: url('{{ this.image }}');background-position: center; background-size: cover;
+                                      background-repeat: no-repeat; height: 40px; width: 40px; border-radius: 50%">
+              </div>
+            </a>
+            {{else}}
+            <a href="/users/{{ this.id }}" style="text-decoration: none;">
+              <div class="text-center  {{ randomColor }}  p-2" style="height: 40px; width: 40px; border-radius: 50%">
+                <span>{{ this.icon }}</span>
+              </div>
+            </a>
+            {{/if}}
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/ifCond}}
+
+
     </div>
-    {{/ifCond}}
+    {{!-- right --}}
+    <div class="col-md-7 p-0">
+
+      {{!-- comments --}}
+
+      <div class="card mb-4">
+        {{#ifCond comments.length 0}}
+        <h5 class="card-header">尚未有評論</h5>
+        {{else}}
+        <h5 class="card-header">{{comments.length}}已評論餐廳</h5>
+        <div class="row card-body">
+          {{#each comments}}
+          <div class="col-2 my-2">
+            <a href="/restaurants/{{ this.Restaurant.id }}">
+              <div style="background-image: url('{{ this.Restaurant.image }}');background-position: center; background-size: cover;
+                background-repeat: no-repeat; height: 50px; max-width: 80px">
+              </div>
+            </a>
+          </div>
+          {{/each}}
+        </div>
+        {{/ifCond}}
+      </div>
+
+      {{!-- favorite restaurant --}}
+
+      {{#ifCond user.FavoritedRestaurants.length 0}}
+      <h5 class="card card-header">尚未收藏餐廳</h5>
+      {{else}}
+      <div class="card mb-4">
+        <h5 class="card-header">{{user.FavoritedRestaurants.length}}收藏的餐廳</h5>
+        <div class="row card-body">
+          {{#each user.FavoritedRestaurants}}
+          <div class="col-2 my-2">
+            <a href="/restaurants/{{ this.id }}">
+              <div style="background-image: url('{{ this.image }}');background-position: center; background-size: cover;
+                      background-repeat: no-repeat; height: 50px; max-width: 80px">
+              </div>
+            </a>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+      {{/ifCond}}
+
+    </div>
   </div>
 </div>

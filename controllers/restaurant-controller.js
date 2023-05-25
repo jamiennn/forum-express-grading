@@ -24,14 +24,14 @@ const restaurantController = {
       Category.findAll({ raw: true })
     ])
       .then(([restaurants, categories]) => {
-        const favoritedRestaurantId = req.user && req.user.FavoritedRestaurants.map(fr => fr.id)
-        const likedRestaurantId = req.user && req.user.LikedRestaurants.map(lr => lr.id)
+        const favoritedRestaurantIds = req.user && req.user.FavoritedRestaurants.map(fr => fr.id)
+        const likedRestaurantIds = req.user && req.user.LikedRestaurants.map(lr => lr.id)
 
         const data = restaurants.rows.map(r => ({
           ...r,
           description: r.description.substring(0, 50),
-          isFavorited: favoritedRestaurantId.includes(r.id),
-          isLiked: likedRestaurantId.includes(r.id)
+          isFavorited: favoritedRestaurantIds.includes(r.id),
+          isLiked: likedRestaurantIds.includes(r.id)
         }))
         return res.render('restaurants', {
           restaurants: data,

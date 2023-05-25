@@ -39,21 +39,49 @@ const userController = {
     res.redirect('/signin')
   },
   getUser: (req, res, next) => {
-    const pageUserId = req.params.id
+    const userId = req.params.id
 
     return Promise.all([
-      User.findByPk(pageUserId, { raw: true }),
-      Comment.findAndCountAll({
+      User.findByPk(userId, {
+        include: [
+          { model: User, as: 'Followers', attributes: ['id', 'image', 'name'] },
+          { model: User, as: 'Followings', attributes: ['id', 'image', 'name'] },
+          { model: Restaurant, as: 'FavoritedRestaurants', attributes: ['id', 'image'] }
+        ]
+      }),
+      Comment.findAll({
         where: {
-          userId: pageUserId
+          userId
         },
         raw: true,
         nest: true,
-        include: [Restaurant]
+        include: [
+          { model: Restaurant, attributes: ['id', 'image'] }
+        ]
       })
     ])
       .then(([user, comments]) => {
         if (!user) throw new Error("User doesn't exists.")
+        user = user.toJSON()
+
+        // 取出名字的第一個字元，作為沒有頭貼的替代字
+        user = ({
+          ...user,
+          Followings: user.Followings.map(f => ({
+            ...f,
+            icon: f.name.slice(0, 1)
+          })),
+          Followers: user.Followers.map(f => ({
+            ...f,
+            icon: f.name.slice(0, 1)
+          }))
+        })
+
+        const set = new Set()
+        comments = comments.filter(c => {
+          return !set.has(c.restaurantId) ? set.add(c.restaurantId) : false
+        })
+
         res.render('users/profile', { user, comments })
       })
       .catch(err => next(err))
