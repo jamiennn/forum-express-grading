@@ -1,3 +1,4 @@
+const assert = require('assert')
 const { Restaurant, User, Category } = require('../models')
 const { imgurFileHelper } = require('../helpers/file-helpers')
 
@@ -18,7 +19,7 @@ const adminController = {
   },
   postRestaurant: (req, res, next) => {
     const { name, tel, address, openingHours, description, categoryId } = req.body
-    if (!name) throw new Error('Name is required!')
+    assert(name, 'Name is required!')
     const { file } = req
     return imgurFileHelper(file)
       .then(filePath => Restaurant.create({
@@ -44,7 +45,7 @@ const adminController = {
       include: [Category]
     })
       .then(restaurant => {
-        if (!restaurant) throw new Error('Restaurant does not exist')
+        assert(restaurant, 'Restaurant does not exist')
         res.render('admin/restaurant', { restaurant })
       })
       .catch(err => next(err))
@@ -55,21 +56,22 @@ const adminController = {
       Category.findAll({ raw: true })
     ])
       .then(([restaurant, categories]) => {
-        if (!restaurant) throw new Error('Restaurant does not exist')
+        assert(restaurant, 'Restaurant does not exist')
         res.render('admin/edit-restaurant', { restaurant, categories })
       })
       .catch(err => next(err))
   },
   putRestaurant: (req, res, next) => {
     const { name, tel, address, openingHours, description, categoryId } = req.body
-    if (!name) throw new Error('Name is required!')
+    assert(name, 'Name is required!')
     const { file } = req
     return Promise.all([
       Restaurant.findByPk(req.params.id),
       imgurFileHelper(file)
     ])
       .then(([restaurant, filePath]) => {
-        if (!restaurant) throw new Error('Restaurant does not exist')
+        assert(restaurant, 'Restaurant does not exist')
+
         return restaurant.update({
           name,
           tel,
@@ -89,7 +91,7 @@ const adminController = {
   deleteRestaurant: (req, res, next) => {
     return Restaurant.findByPk(req.params.id)
       .then(restaurant => {
-        if (!restaurant) throw new Error('Restaurant does not exist')
+        assert(restaurant, 'Restaurant does not exist')
         restaurant.destroy()
       })
       .then(() => res.redirect('/admin/restaurants'))

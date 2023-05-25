@@ -1,3 +1,4 @@
+const assert = require('assert')
 const { Restaurant, Category, Comment, User } = require('../models')
 const { getOffset, getPagination } = require('../helpers/pagination-helpers')
 
@@ -53,7 +54,7 @@ const restaurantController = {
       order: [[Comment, 'createdAt', 'DESC']]
     })
       .then(restaurant => {
-        if (!restaurant) throw new Error('Restaurant does not exist!')
+        assert(restaurant, 'Restaurant does not exist!')
         return restaurant.increment('viewCounts')
       })
       .then(restaurant => {
@@ -74,7 +75,7 @@ const restaurantController = {
       ]
     })
       .then(restaurant => {
-        if (!restaurant) throw new Error('Restaurant does not exist!')
+        assert(restaurant, 'Restaurant does not exist!')
         res.render('dashboard', { restaurant: restaurant.toJSON() })
       })
       .catch(err => next(err))

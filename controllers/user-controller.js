@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs')
+const assert = require('assert')
 const db = require('../models')
 const { imgurFileHelper } = require('../helpers/file-helpers')
 const { User, Comment, Restaurant, Favorite, Like, Followship } = db
@@ -9,10 +10,11 @@ const userController = {
   },
   signUp: (req, res, next) => {
     const { name, email, password, passwordCheck } = req.body
-    if (password !== passwordCheck) throw new Error('Passwords do not match!')
+    assert.deepStrictEqual(password, passwordCheck, 'Passwords do not match!')
+
     User.findOne({ where: { email } })
       .then(user => {
-        if (user) throw new Error('Email already exists!')
+        assert(!user, 'Email already exists!')
         return bcrypt.hash(password, 10)
       })
       .then(hash => User.create({
@@ -61,7 +63,7 @@ const userController = {
       })
     ])
       .then(([user, comments]) => {
-        if (!user) throw new Error("User doesn't exists.")
+        assert(user, "User doesn't exists.")
         user = user.toJSON()
 
         // 取出名字的第一個字元，作為沒有頭貼的替代字
@@ -89,7 +91,7 @@ const userController = {
   editUser: (req, res, next) => {
     return User.findByPk(req.params.id, { raw: true })
       .then(user => {
-        if (!user) throw new Error("User doesn't exists.")
+        assert(user, "User doesn't exists.")
         res.render('users/edit', { user })
       })
       .catch(err => next(err))
@@ -97,8 +99,8 @@ const userController = {
   putUser: (req, res, next) => {
     const { name } = req.body
 
-    if (!name) throw new Error('Name is required.')
-    if (req.user.id !== Number(req.params.id)) throw new Error('You cant edit others profile.')
+    assert(name, 'Name is required.')
+    assert.deepStrictEqual(req.user.id, Number(req.params.id), 'You cant edit others profile.')
 
     return Promise.all([
       User.findByPk(req.params.id),
@@ -130,8 +132,8 @@ const userController = {
       })
     ])
       .then(([restaurant, favorite]) => {
-        if (!restaurant) throw new Error("Restaurant didn't exist!")
-        if (favorite) throw new Error('You have favorited this restaurant!')
+        assert(restaurant, "Restaurant didn't exist!")
+        assert(!favorite, 'You have favorited this restaurant!')
 
         return Favorite.create({
           restaurantId,
@@ -164,7 +166,7 @@ const userController = {
       }
     })
       .then(favorite => {
-        if (!favorite) throw new Error("You haven't favorited this restaurant")
+        assert(favorite, "You haven't favorited this restaurant")
 
         return favorite.destroy()
       })
@@ -195,8 +197,8 @@ const userController = {
       Like.findOne({ where: { restaurantId, userId } })
     ])
       .then(([restaurant, like]) => {
-        if (!restaurant) throw new Error("Restaurant didn't exist!")
-        if (like) throw new Error('You have favorited this restaurant!')
+        assert(restaurant, "Restaurant didn't exist!")
+        assert(!like, 'You have favorited this restaurant!')
 
         return Like.create({ restaurantId, userId })
       })
@@ -209,7 +211,7 @@ const userController = {
 
     return Like.findOne({ where: { restaurantId, userId } })
       .then(like => {
-        if (!like) throw new Error("You haven't favorited this restaurant")
+        assert(like, "You haven't favorited this restaurant")
         return like.destroy()
       })
       .then(() => res.redirect('back'))
@@ -247,8 +249,8 @@ const userController = {
       })
     ])
       .then(([user, followship]) => {
-        if (!user) throw new Error("User didn't exist!")
-        if (followship) throw new Error('You are already following this user!')
+        assert(user, "User didn't exist!")
+        assert(!followship, 'You are already following this user!')
 
         return Followship.create({
           followerId: loginUserId,
@@ -266,7 +268,7 @@ const userController = {
       }
     })
       .then(followship => {
-        if (!followship) throw new Error("You haven't followed this user!")
+        assert(followship, "You haven't followed this user!")
         return followship.destroy()
       })
       .then(() => res.redirect('back'))

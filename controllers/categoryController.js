@@ -1,3 +1,4 @@
+const assert = require('assert')
 const { Category } = require('../models')
 
 module.exports = {
@@ -13,7 +14,8 @@ module.exports = {
   },
   postCategory: (req, res, next) => {
     const { name } = req.body
-    if (!name) throw new Error('Category name is required!')
+    assert(name, 'Category name is required!')
+
     return Category.create({ name })
       .then(() => {
         req.flash('success_messages', 'Category created.')
@@ -24,10 +26,11 @@ module.exports = {
   putCategory: (req, res, next) => {
     const id = req.params.id
     const { name } = req.body
-    if (!name) throw new Error('Category name is required!')
+    assert(name, 'Category name is required!')
+
     return Category.findByPk(id)
       .then(category => {
-        if (!category) throw new Error('Category does not exist!')
+        assert(category, 'Category does not exist!')
         return category.update({ name })
       })
       .then(() => {
@@ -40,7 +43,7 @@ module.exports = {
     const id = req.params.id
     return Category.findByPk(id)
       .then(category => {
-        if (!category) throw new Error('Category does not exists.')
+        assert(category, 'Category does not exists.')
         return category.destroy()
       })
       .then(() => res.redirect('/admin/categories'))
