@@ -22,18 +22,26 @@ const restaurantController = {
         raw: true,
         nest: true
       }),
-      Category.findAll({ raw: true })
+      Category.findAll({
+        where: { deleted: 0 },
+        raw: true
+      })
     ])
       .then(([restaurants, categories]) => {
         const favoritedRestaurantIds = req.user && req.user.FavoritedRestaurants.map(fr => fr.id)
         const likedRestaurantIds = req.user && req.user.LikedRestaurants.map(lr => lr.id)
 
-        const data = restaurants.rows.map(r => ({
-          ...r,
-          description: r.description.substring(0, 50),
-          isFavorited: favoritedRestaurantIds.includes(r.id),
-          isLiked: likedRestaurantIds.includes(r.id)
-        }))
+        const data = restaurants.rows
+          .map(r => ({
+            ...r,
+            description: r.description.substring(0, 50),
+            isFavorited: favoritedRestaurantIds.includes(r.id),
+            isLiked: likedRestaurantIds.includes(r.id)
+          }))
+        data.forEach(r => {
+          if (r.Category.deleted) r.Category.name = '未分類'
+        })
+
         return res.render('restaurants', {
           restaurants: data,
           categories,
@@ -62,6 +70,8 @@ const restaurantController = {
         const isLiked = restaurant.LikedUsers.some(l => l.id === req.user.id)
 
         restaurant = restaurant.toJSON()
+        if (restaurant.Category.deleted) restaurant.Category.name = '未分類'
+
         res.render('restaurant', { restaurant, isFavorited, isLiked })
       })
       .catch(err => next(err))
@@ -76,6 +86,7 @@ const restaurantController = {
     })
       .then(restaurant => {
         assert(restaurant, 'Restaurant does not exist!')
+        if (restaurant.Category.deleted) restaurant.Category.name = '未分類'
         res.render('dashboard', { restaurant: restaurant.toJSON() })
       })
       .catch(err => next(err))
@@ -98,6 +109,9 @@ const restaurantController = {
       })
     ])
       .then(([restaurants, comments]) => {
+        restaurants.forEach(r => {
+          if (r.Category.deleted) r.Category.name = '未分類'
+        })
         res.render('feeds', { restaurants, comments })
       })
       .catch(err => next(err))

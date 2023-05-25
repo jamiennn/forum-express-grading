@@ -9,11 +9,19 @@ const adminController = {
       nest: true,
       include: [Category]
     })
-      .then(restaurants => res.render('admin/restaurants', { restaurants }))
+      .then(restaurants => {
+        restaurants.forEach(r => {
+          if (r.Category.deleted) r.Category.name = '未分類'
+        })
+        res.render('admin/restaurants', { restaurants })
+      })
       .catch(err => next(err))
   },
   createRestaurant: (req, res, next) => {
-    return Category.findAll({ raw: true })
+    return Category.findAll({
+      raw: true,
+      where: { deleted: 0 }
+    })
       .then(categories => res.render('admin/create-restaurant', { categories }))
       .catch(err => next(err))
   },
@@ -46,6 +54,7 @@ const adminController = {
     })
       .then(restaurant => {
         assert(restaurant, 'Restaurant does not exist')
+        if (restaurant.Category.deleted) restaurant.Category.name = '未分類'
         res.render('admin/restaurant', { restaurant })
       })
       .catch(err => next(err))
@@ -53,7 +62,10 @@ const adminController = {
   editRestaurant: (req, res, next) => {
     return Promise.all([
       Restaurant.findByPk(req.params.id, { raw: true }),
-      Category.findAll({ raw: true })
+      Category.findAll({
+        raw: true,
+        where: { deleted: 0 }
+      })
     ])
       .then(([restaurant, categories]) => {
         assert(restaurant, 'Restaurant does not exist')
