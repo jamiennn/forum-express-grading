@@ -69,7 +69,8 @@ const restaurantController = {
     return Restaurant.findByPk(req.params.id, {
       include: [
         Category,
-        Comment
+        Comment,
+        { model: User, as: 'FavoritedUsers' }
       ]
     })
       .then(restaurant => {
